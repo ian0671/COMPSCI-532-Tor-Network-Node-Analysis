@@ -72,4 +72,4 @@ jobs:
           app-name: 'COMPSCI532-Function-App'
           slot-name: 'Production'
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_CB06A5F0FB754B81A7969F293BE840DC }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_065F8DF4EBD24EB9A379F50643C66A2B }}
