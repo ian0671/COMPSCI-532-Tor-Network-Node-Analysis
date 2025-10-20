@@ -157,4 +157,4 @@ def abuseipdb_timer(mytimer: func.TimerRequest) -> None:
         return
 
     sent = _send_records_to_eventhub(results, conn_str=eh_conn, hub_name=eh_name)
-    logging.info("✅ AbuseIPDBTimer sent %d/%d records to %s", sent, len(results), eh_name)
+    logging.info("AbuseIPDBTimer sent %d/%d records to %s", sent, len(results), eh_name)
