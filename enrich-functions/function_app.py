@@ -1,160 +1,199 @@
-import os, json, time, logging, datetime, requests
+import datetime
+import json
+import logging
+import os
+from typing import Dict, Any, List, Optional
+
+import requests
 import azure.functions as func
 from azure.eventhub import EventHubProducerClient, EventData
 
+
+# -------------------------------------------------------
+# Function App Initialization
+# -------------------------------------------------------
 app = func.FunctionApp()
+logging.warning("FunctionApp loaded — waiting for timer triggers…")
 
-# --------------------------
-# Helpers
-# --------------------------
 
-def _http_get(url, *, params=None, headers=None, timeout=30, retries=3, backoff=2):
-    """GET with basic retry on 5xx/429."""
-    last_exc = None
-    for attempt in range(1, retries + 1):
-        try:
-            r = requests.get(url, params=params, headers=headers, timeout=timeout)
-            if r.status_code in (429, 500, 502, 503, 504):
-                raise requests.HTTPError(f"Retryable status {r.status_code}: {r.text}")
-            r.raise_for_status()
-            return r
-        except Exception as e:
-            last_exc = e
-            if attempt < retries:
-                sleep_s = backoff ** (attempt - 1)
-                logging.warning("GET %s failed (attempt %d/%d): %s; retrying in %ss",
-                                url, attempt, retries, e, sleep_s)
-                time.sleep(sleep_s)
-            else:
-                logging.error("GET %s failed after %d attempts: %s", url, retries, e)
-    raise last_exc
+# -------------------------------------------------------
+# Environment & Config Helpers
+# -------------------------------------------------------
+def _get_env(name: str, default: Optional[str] = None) -> Optional[str]:
+    val = os.environ.get(name, default)
+    if val is None:
+        logging.error(f"Missing required app setting: {name}")
+    return val
 
-def _send_records_to_eventhub(records, *, conn_str, hub_name):
-    producer = EventHubProducerClient.from_connection_string(conn_str, eventhub_name=hub_name)
-    sent = 0
+
+def _get_env_int(name: str, default: int) -> int:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
     try:
-        batch = producer.create_batch()
-        for rec in records:
-            payload = json.dumps(rec)
-            try:
-                batch.add(EventData(payload))
-                sent += 1
-            except ValueError:
-                producer.send_batch(batch)
-                batch = producer.create_batch()
-                batch.add(EventData(payload))
-                sent += 1
-        if len(batch) > 0:
-            producer.send_batch(batch)
-    finally:
-        producer.close()
-    return sent
+        return int(raw)
+    except ValueError:
+        logging.warning(f"⚠️ Invalid int for {name}='{raw}', using default {default}")
+        return default
 
 
-# ---------------------------------
-# CENSYS (token-based, paginated)
-# ---------------------------------
-@app.function_name(name="CensysTimer")
-@app.schedule(schedule="0 5 * * * *", arg_name="mytimer", run_on_startup=False, use_monitor=True)  # hourly at :05 UTC
-def censys_timer(mytimer: func.TimerRequest) -> None:
-    logging.info("CensysTimer fired at %s", datetime.datetime.utcnow().isoformat())
+# Read settings once at import time
+EVENTHUB_CONNECTION = _get_env("EVENTHUB_CONNECTION")  # namespace conn string (no EntityPath)
+ABUSE_EH_NAME = _get_env("ABUSE_EH_NAME")              # e.g., 'abuseipdbdata'
+CENSYS_EH_NAME = _get_env("CENSYS_EH_NAME")            # e.g., 'censysdata'
 
-    # Required env
-    token   = os.getenv("CENSYS_API_TOKEN")
-    eh_conn = os.getenv("EVENTHUB_CONNECTION")
-    eh_name = os.getenv("CENSYS_EH_NAME")
+ABUSE_API_KEY = _get_env("ABUSE_API_KEY")
+ABUSE_IP_LIST: List[str] = [x.strip() for x in os.environ.get("ABUSE_IP_LIST", "8.8.8.8,1.1.1.1").split(",") if x.strip()]
 
-    if not all([token, eh_conn, eh_name]):
-        logging.error("Missing env vars (CENSYS_API_TOKEN, EVENTHUB_CONNECTION, CENSYS_EH_NAME)")
+CENSYS_API_TOKEN = _get_env("CENSYS_API_TOKEN")
+CENSYS_QUERY = os.environ.get("CENSYS_QUERY", "services.service_name:HTTP")
+CENSYS_PER_PAGE = _get_env_int("CENSYS_PER_PAGE", 50)
+CENSYS_MAX_PAGES = _get_env_int("CENSYS_MAX_PAGES", 1)
+
+# Light config echo (redacted)
+logging.info(
+    "🔧 Config: ABUSE_EH_NAME=%s, CENSYS_EH_NAME=%s, ABUSE_IP_COUNT=%d, CENSYS_PER_PAGE=%d, CENSYS_MAX_PAGES=%d",
+    ABUSE_EH_NAME, CENSYS_EH_NAME, len(ABUSE_IP_LIST), CENSYS_PER_PAGE, CENSYS_MAX_PAGES
+)
+
+
+# -------------------------------------------------------
+# Helper: Send to Event Hub
+# -------------------------------------------------------
+def send_to_eventhub(eventhub_name: str, payload: Dict[str, Any]) -> None:
+    """Send a JSON payload to an Event Hub."""
+    if not EVENTHUB_CONNECTION:
+        logging.error("EVENTHUB_CONNECTION missing; cannot send.")
+        return
+    if not eventhub_name:
+        logging.error("eventhub_name missing; cannot send.")
         return
 
-    # Optional tuning
-    query     = os.getenv("CENSYS_QUERY", "services.service_name:HTTP")
-    per_page  = int(os.getenv("CENSYS_PER_PAGE", "50"))
-    max_pages = int(os.getenv("CENSYS_MAX_PAGES", "1"))  # raise for more data; mind rate limits
+    try:
+        producer = EventHubProducerClient.from_connection_string(
+            conn_str=EVENTHUB_CONNECTION,
+            eventhub_name=eventhub_name
+        )
+        body = json.dumps(payload, separators=(",", ":"), ensure_ascii=False)
+        event = EventData(body)
+        with producer:
+            producer.send_batch([event])
+        logging.info("Sent %d bytes to Event Hub '%s'", len(body.encode("utf-8")), eventhub_name)
+    except Exception as e:
+        logging.exception("Failed sending to Event Hub '%s': %s", eventhub_name, e)
 
+
+# -------------------------------------------------------
+# Timer Function: Censys (every minute)
+# -------------------------------------------------------
+@app.schedule(
+    schedule="0 * * * * *",          # every minute at second 0 (more reliable on Consumption)
+    arg_name="mytimer",
+    run_on_startup=True,             # fire once as the host starts
+    use_monitor=False                # ignore history; always run on schedule
+)
+def CensysTimer(mytimer: func.TimerRequest) -> None:
+    fired_at = datetime.datetime.utcnow().isoformat() + "Z"
+    logging.info("CensysTimer fired at %s", fired_at)
+
+    if not CENSYS_API_TOKEN:
+        logging.error("CENSYS_API_TOKEN missing; skipping.")
+        return
+    if not CENSYS_EH_NAME:
+        logging.error("CENSYS_EH_NAME missing; skipping.")
+        return
+
+    url = "https://search.censys.io/api/v2/hosts/search"
     headers = {
-        "Authorization": f"Bearer {token}",
+        "Authorization": f"Bearer {CENSYS_API_TOKEN}",
         "Accept": "application/json",
-        "User-Agent": "cs532-tor-pipeline/1.0"
+        "User-Agent": "cs532-azure-functions/1.0"
     }
 
-    all_recs = []
-    for page in range(1, max_pages + 1):
-        params = {"q": query, "per_page": per_page, "page": page}
-        try:
-            r = _http_get("https://search.censys.io/api/v2/hosts/search",
-                          params=params, headers=headers, timeout=30, retries=3, backoff=2)
-            body = r.json() or {}
-            hits = (body.get("result") or {}).get("hits", []) or []
-        except Exception as e:
-            logging.exception("Censys page %d failed: %s", page, e)
-            break
+    params = {
+        "q": CENSYS_QUERY,
+        "per_page": CENSYS_PER_PAGE,
+        "virtual_hosts": "EXCLUDE"
+    }
 
-        if not hits:
-            logging.info("Censys page %d returned 0 hits; stopping pagination.", page)
-            break
+    all_hits: List[Dict[str, Any]] = []
+    try:
+        for page in range(1, CENSYS_MAX_PAGES + 1):
+            params["page"] = page
+            resp = requests.get(url, headers=headers, params=params, timeout=15)
+            if resp.status_code != 200:
+                logging.warning("Censys API %s: %s", resp.status_code, resp.text[:500])
+                break
 
-        run_id = int(datetime.datetime.utcnow().timestamp())
-        for h in hits:
-            all_recs.append({
-                "source": "censys",
-                "ip": h.get("ip"),
-                "asn": (h.get("autonomous_system") or {}).get("asn"),
-                "country": (h.get("location") or {}).get("country"),
-                "seen_at": h.get("last_updated_at"),
-                "run_id": run_id,
-                "q": query,
-                "page": page,
-            })
+            j = resp.json()
+            hits = j.get("result", {}).get("hits", []) or []
+            all_hits.extend(hits)
+            logging.info("• Censys page %d: %d hits", page, len(hits))
+            if not hits:
+                break
 
-    if not all_recs:
-        logging.warning("Censys returned no records for query='%s'", query)
+        payload = {
+            "source": "censys",
+            "query": CENSYS_QUERY,
+            "count": len(all_hits),
+            "timestamp": fired_at
+        }
+        send_to_eventhub(CENSYS_EH_NAME, payload)
+        logging.info("CensysTimer sent %d records to %s", len(all_hits), CENSYS_EH_NAME)
+
+    except Exception as e:
+        logging.exception("CensysTimer failed: %s", e)
+
+
+# -------------------------------------------------------
+# Timer Function: AbuseIPDB (every minute)
+# -------------------------------------------------------
+@app.schedule(
+    schedule="0 * * * * *",          # every minute at second 0
+    arg_name="mytimer",
+    run_on_startup=True,
+    use_monitor=False
+)
+def AbuseIPDBTimer(mytimer: func.TimerRequest) -> None:
+    fired_at = datetime.datetime.utcnow().isoformat() + "Z"
+    logging.info("AbuseIPDBTimer fired at %s", fired_at)
+
+    if not ABUSE_API_KEY:
+        logging.error("ABUSE_API_KEY missing; skipping.")
+        return
+    if not ABUSE_EH_NAME:
+        logging.error("ABUSE_EH_NAME missing; skipping.")
         return
 
-    sent = _send_records_to_eventhub(all_recs, conn_str=eh_conn, hub_name=eh_name)
-    logging.info("✅ CensysTimer sent %d/%d records to %s (query='%s', pages=%d)",
-                 sent, len(all_recs), eh_name, query, min(max_pages, (len(all_recs) + per_page - 1) // per_page))
+    url = "https://api.abuseipdb.com/api/v2/check"
+    headers = {
+        "Key": ABUSE_API_KEY,
+        "Accept": "application/json",
+        "User-Agent": "cs532-azure-functions/1.0"
+    }
 
+    results: List[Dict[str, Any]] = []
+    try:
+        for ip in ABUSE_IP_LIST:
+            try:
+                resp = requests.get(url, headers=headers, params={"ipAddress": ip}, timeout=10)
+                if resp.status_code == 200:
+                    data = resp.json().get("data", {})
+                    results.append({"ip": ip, **data})
+                    logging.info("• AbuseIPDB ok for %s", ip)
+                else:
+                    logging.warning("AbuseIPDB %s for %s: %s", resp.status_code, ip, resp.text[:500])
+            except requests.RequestException as re:
+                logging.warning("Network error querying AbuseIPDB for %s: %s", ip, re)
 
-# -------------------------
-# AbuseIPDB (batched)
-# -------------------------
-@app.function_name(name="AbuseIPDBTimer")
-@app.schedule(schedule="0 10 * * * *", arg_name="mytimer", run_on_startup=False, use_monitor=True)  # hourly at :10 UTC
-def abuseipdb_timer(mytimer: func.TimerRequest) -> None:
-    logging.info("AbuseIPDBTimer fired at %s", datetime.datetime.utcnow().isoformat())
+        payload = {
+            "source": "abuseipdb",
+            "count": len(results),
+            "timestamp": fired_at,
+            "ips": results
+        }
+        send_to_eventhub(ABUSE_EH_NAME, payload)
+        logging.info("AbuseIPDBTimer sent %d records to %s", len(results), ABUSE_EH_NAME)
 
-    api_key = os.getenv("ABUSE_API_KEY")
-    ip_list = [x.strip() for x in os.getenv("ABUSE_IP_LIST", "8.8.8.8,1.1.1.1").split(",") if x.strip()]
-    eh_conn = os.getenv("EVENTHUB_CONNECTION")
-    eh_name = os.getenv("ABUSE_EH_NAME")
-
-    if not all([api_key, eh_conn, eh_name]):
-        logging.error("Missing env vars (ABUSE_API_KEY, EVENTHUB_CONNECTION, ABUSE_EH_NAME)")
-        return
-
-    headers = {"Key": api_key, "Accept": "application/json", "User-Agent": "cs532-tor-pipeline/1.0"}
-    results = []
-    run_id = int(datetime.datetime.utcnow().timestamp())
-
-    for ip in ip_list:
-        try:
-            r = _http_get("https://api.abuseipdb.com/api/v2/check",
-                          params={"ipAddress": ip}, headers=headers, timeout=20, retries=3, backoff=2)
-            payload = r.json() or {}
-            results.append({
-                "source": "abuseipdb",
-                "ip": ip,
-                "run_id": run_id,
-                "data": payload
-            })
-        except Exception as e:
-            logging.exception("AbuseIPDB request failed for %s: %s", ip, e)
-
-    if not results:
-        logging.warning("AbuseIPDB produced no records (ip_list=%s)", ",".join(ip_list))
-        return
-
-    sent = _send_records_to_eventhub(results, conn_str=eh_conn, hub_name=eh_name)
-    logging.info("AbuseIPDBTimer sent %d/%d records to %s", sent, len(results), eh_name)
+    except Exception as e:
+        logging.exception("AbuseIPDBTimer failed: %s", e)
