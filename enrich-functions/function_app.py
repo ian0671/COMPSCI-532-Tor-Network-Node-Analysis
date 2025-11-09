@@ -149,10 +149,10 @@ def write_json_to_adls(records: List[Dict[str, Any]], subdir: str, filename: Opt
 
 
 # -------------------------------------------------------
-# Timer Function: Censys (every minute)
+# Timer Function: Censys (every 30 minutes)
 # -------------------------------------------------------
 @app.schedule(
-    schedule="0 * * * * *",          # every minute at second 0 (more reliable on Consumption)
+    schedule="0 */30 * * * *",       # every 30 minutes at minute 0,30 (free tier friendly)
     arg_name="mytimer",
     run_on_startup=True,             # fire once as the host starts
     use_monitor=False                # ignore history; always run on schedule
@@ -229,7 +229,7 @@ def CensysTimer(mytimer: func.TimerRequest) -> None:
 # Timer Function: AbuseIPDB (every minute)
 # -------------------------------------------------------
 @app.schedule(
-    schedule="0 * * * * *",          # every minute at second 0
+    schedule="0 */30 * * * *",       # every 30 minutes at minute 0,30 (free tier friendly)
     arg_name="mytimer",
     run_on_startup=True,
     use_monitor=False
