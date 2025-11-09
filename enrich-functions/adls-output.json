@@ -1,0 +1,21 @@
+{
+  "properties": {
+    "datasource": {
+      "type": "Microsoft.Storage/Blob",
+      "properties": {
+        "storageAccounts": [
+          {
+            "accountName": "compsci532mlwo6133466000"
+          }
+        ],
+        "container": "threat-data",
+        "pathPattern": "abuseipdb/year={datetime:yyyy}/month={datetime:MM}/day={datetime:dd}/hour={datetime:HH}/{rand-guid}",
+        "dateFormat": "yyyy/MM/dd",
+        "timeFormat": "HH"
+      }
+    },
+    "serialization": {
+      "type": "Parquet"
+    }
+  }
+}

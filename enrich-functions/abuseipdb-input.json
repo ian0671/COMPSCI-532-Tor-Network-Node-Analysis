@@ -1,0 +1,19 @@
+{
+  "type": "Stream",
+  "datasource": {
+    "type": "Microsoft.ServiceBus/EventHub",
+    "properties": {
+      "eventHubName": "abuseipdbdata",
+      "serviceBusNamespace": "COMPSCI532EventHub",
+      "sharedAccessPolicyName": "RootManageSharedAccessKey",
+      "sharedAccessPolicyKey": "NEKYSzeYeDijyOuv/vszFuq0F8G/BsF9X+AEhFLpTZo=",
+      "consumerGroupName": "$Default"
+    }
+  },
+  "serialization": {
+    "type": "Json",
+    "properties": {
+      "encoding": "UTF8"
+    }
+  }
+}
