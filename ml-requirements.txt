@@ -1,0 +1,12 @@
+# Azure ML Environment Requirements
+# Add these to your existing requirements.txt or create ml-requirements.txt
+
+azureml-core>=1.50.0
+azureml-dataset-runtime>=1.50.0
+azureml-train-core>=1.50.0
+scikit-learn>=1.3.0
+pandas>=2.0.0
+numpy>=1.24.0
+joblib>=1.3.0
+azure-storage-blob>=12.0.0
+azure-identity>=1.13.0
