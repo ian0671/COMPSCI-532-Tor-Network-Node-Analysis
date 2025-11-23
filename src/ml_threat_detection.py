@@ -33,32 +33,84 @@ class ThreatIntelligenceML:
         self.logger = logging.getLogger(__name__)
 
     def load_abuseipdb_data(self):
-        """Load processed AbuseIPDB data from storage"""
+        """Load processed AbuseIPDB data from flattened parquet files"""
         try:
-            # Get latest AbuseIPDB files
+            # Get flattened AbuseIPDB files
             container_client = self.blob_client.get_container_client("abuseipdb")
-            blobs = list(container_client.list_blobs())
+            blobs = list(container_client.list_blobs(name_starts_with="flattened/"))
+            
+            if not blobs:
+                self.logger.warning("No flattened files found, using simulated data")
+                return self._simulate_abuseipdb_data()
+            
+            # Sort by last modified and get recent files (last 10 for faster loading)
+            recent_blobs = sorted(blobs, key=lambda x: x.last_modified, reverse=True)[:10]
+            
+            all_data = []
+            for blob in recent_blobs:
+                try:
+                    blob_client = container_client.get_blob_client(blob.name)
+                    data = blob_client.download_blob().readall()
+                    
+                    # Read parquet data directly
+                    df = pd.read_parquet(io.BytesIO(data))
+                    all_data.append(df)
+                    self.logger.info(f"Loaded {len(df)} records from {blob.name}")
+                except Exception as e:
+                    self.logger.warning(f"Error loading {blob.name}: {e}")
+                    continue
+            
+            if not all_data:
+                self.logger.warning("No data successfully loaded, using simulated data")
+                return self._simulate_abuseipdb_data()
+            
+            combined_data = pd.concat(all_data, ignore_index=True)
+            self.logger.info(f"Total loaded: {len(combined_data)} AbuseIPDB records")
+            return combined_data
+            
+        except Exception as e:
+            self.logger.error(f"Error loading AbuseIPDB data: {e}")
+            return self._simulate_abuseipdb_data()
+
+    def load_censys_data(self):
+        """Load Censys network scan data from flattened parquet files"""
+        try:
+            # Get flattened Censys files
+            container_client = self.blob_client.get_container_client("censys")
+            blobs = list(container_client.list_blobs(name_starts_with="flattened/"))
+            
+            if not blobs:
+                self.logger.warning("No flattened censys files found, using simulated data")
+                return self._simulate_censys_data()
             
             # Sort by last modified and get recent files
             recent_blobs = sorted(blobs, key=lambda x: x.last_modified, reverse=True)[:10]
             
             all_data = []
             for blob in recent_blobs:
-                blob_client = container_client.get_blob_client(blob.name)
-                data = blob_client.download_blob().readall()
-                
-                # Parse AVRO data (simplified - in production use proper AVRO parser)
-                # For now, we'll simulate the structure
-                df = self._simulate_abuseipdb_data()
-                all_data.append(df)
+                try:
+                    blob_client = container_client.get_blob_client(blob.name)
+                    data = blob_client.download_blob().readall()
+                    
+                    # Read parquet data directly
+                    df = pd.read_parquet(io.BytesIO(data))
+                    all_data.append(df)
+                    self.logger.info(f"Loaded {len(df)} records from {blob.name}")
+                except Exception as e:
+                    self.logger.warning(f"Error loading {blob.name}: {e}")
+                    continue
+            
+            if not all_data:
+                self.logger.warning("No censys data successfully loaded, using simulated data")
+                return self._simulate_censys_data()
             
             combined_data = pd.concat(all_data, ignore_index=True)
-            self.logger.info(f"Loaded {len(combined_data)} AbuseIPDB records")
+            self.logger.info(f"Total loaded: {len(combined_data)} Censys records")
             return combined_data
             
         except Exception as e:
-            self.logger.error(f"Error loading AbuseIPDB data: {e}")
-            return self._simulate_abuseipdb_data()
+            self.logger.error(f"Error loading Censys data: {e}")
+            return self._simulate_censys_data()
 
     def load_tor_data(self):
         """Load Tor network data from get_server_descriptors"""
@@ -82,6 +134,15 @@ class ThreatIntelligenceML:
         except Exception as e:
             self.logger.error(f"Error loading Tor data: {e}")
             return pd.DataFrame()
+    
+    def _simulate_censys_data(self):
+        """Simulate Censys data structure for testing"""
+        return pd.DataFrame({
+            'ip': [f'185.220.{i%256}.{i%256}' for i in range(100)],
+            'port': np.random.choice([80, 443, 22, 9001], 100),
+            'protocol': np.random.choice(['http', 'https', 'ssh'], 100),
+            'services': [f'service_{i}' for i in range(100)]
+        })
 
     def _simulate_abuseipdb_data(self):
         """Simulate AbuseIPDB data structure for testing"""
@@ -221,9 +282,12 @@ class ThreatIntelligenceML:
         """Execute complete ML pipeline"""
         self.logger.info("Starting Threat Intelligence ML Pipeline...")
         
-        # 1. Load data
+        # 1. Load data from flattened parquet files
         abuseipdb_data = self.load_abuseipdb_data()
+        censys_data = self.load_censys_data()
         tor_data = self.load_tor_data()
+        
+        self.logger.info(f"Loaded {len(abuseipdb_data)} AbuseIPDB, {len(censys_data)} Censys, {len(tor_data)} Tor records")
         
         # 2. Create features
         threat_data = self.create_threat_features(abuseipdb_data, tor_data)
