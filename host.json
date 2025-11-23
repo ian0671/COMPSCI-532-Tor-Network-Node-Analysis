@@ -1,0 +1,32 @@
+{
+  "version": "2.0",
+  "extensions": {
+    "eventHubs": {
+      "batchCheckpointFrequency": 1,
+      "eventProcessorOptions": {
+        "maxBatchSize": 10,
+        "prefetchCount": 300
+      }
+    }
+  },
+  "logging": {
+    "logLevel": {
+      "default": "Information",
+      "Function.Get_Key_Certificates": "Debug",
+      "Function.Get_Consensus": "Debug",
+      "Function.Get_ExtraInfo_Descriptors": "Debug",
+      "Function.Get_Microdescriptors": "Debug",
+      "Function.Get_Server_Descriptors": "Debug"
+    },
+    "applicationInsights": {
+      "samplingSettings": {
+        "isEnabled": true,
+        "excludedTypes": "Request"
+      }
+    }
+  },
+  "extensionBundle": {
+    "id": "Microsoft.Azure.Functions.ExtensionBundle",
+    "version": "[4.*, 5.0.0)"
+  }
+}

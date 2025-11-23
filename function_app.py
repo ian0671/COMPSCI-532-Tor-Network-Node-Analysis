@@ -1,0 +1,17 @@
+import azure.functions as func 
+
+from Get_Consensus import CollecTor_Get_Consensus as Get_Consensus
+from Get_Server_Descriptors import CollecTor_Get_Server_Descriptors as Get_Server_Descriptors
+from Get_Microdescriptors import CollecTor_Get_Microdescriptors as Get_Microdescriptors
+# from Get_Key_Certificates import CollecTor_Get_Key_Certificates as Get_Key_Certificates
+from Get_ExtraInfo_Descriptors import CollecTor_Get_ExtraInfo_Descriptors as Get_ExtraInfo_Descriptors
+from Get_Exit_Lists import CollecTor_Get_Exit_Lists as Get_Exit_Lists
+
+app = func.FunctionApp() 
+app.register_functions(Get_Consensus)
+app.register_functions(Get_Server_Descriptors)
+app.register_functions(Get_Microdescriptors)
+# app.register_functions(Get_Key_Certificates)
+app.register_functions(Get_ExtraInfo_Descriptors)
+app.register_functions(Get_Exit_Lists)
+
