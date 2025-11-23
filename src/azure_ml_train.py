@@ -25,13 +25,15 @@ def main():
         # Initialize ML pipeline
         ml_pipeline = ThreatIntelligenceML()
         
-        # Load threat intelligence data
-        print("Loading threat intelligence data...")
+        # Load threat intelligence data from flattened parquet files
+        print("Loading threat intelligence data from flattened storage...")
         abuseipdb_data = ml_pipeline.load_abuseipdb_data()
+        censys_data = ml_pipeline.load_censys_data()
         tor_data = ml_pipeline.load_tor_data()
         
         # Log data metrics
         run.log("abuseipdb_records", len(abuseipdb_data))
+        run.log("censys_records", len(censys_data))
         run.log("tor_records", len(tor_data))
         
         # Create features
