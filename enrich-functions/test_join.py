@@ -68,4 +68,4 @@ if __name__ == "__main__":
     print(json.dumps(sample3, indent=2))
     print()
     
-    print("✅ Join logic tests passed!")
+    print(" Join logic tests passed!")

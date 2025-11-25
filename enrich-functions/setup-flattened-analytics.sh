@@ -12,7 +12,7 @@ STORAGE_ACCOUNT="compsci532mlwo6133466000"
 STORAGE_CONTAINER_ABUSE="abuseipdb"
 STORAGE_CONTAINER_CENSYS="censys"
 
-echo "🚀 Creating Stream Analytics Job: $JOB_NAME"
+echo " Creating Stream Analytics Job: $JOB_NAME"
 echo "================================================"
 
 # Step 1: Create Stream Analytics Job
@@ -26,7 +26,7 @@ az stream-analytics job create \
   --data-locale "en-US" \
   --tags "Environment=Production" "Purpose=FlattenedDataAnalytics"
 
-echo "✅ Stream Analytics Job created successfully!"
+echo " Stream Analytics Job created successfully!"
 
 # Step 2: Get Storage Account Key
 echo ""
@@ -37,7 +37,7 @@ STORAGE_KEY=$(az storage account keys list \
   --query '[0].value' \
   --output tsv)
 
-echo "✅ Storage key retrieved"
+echo " Storage key retrieved"
 
 # Step 3: Create Blob Storage Input for AbuseIPDB
 echo ""
@@ -72,7 +72,7 @@ az stream-analytics input create \
   --name "FlattenedAbuseIPDB" \
   --properties @/tmp/abuse-input.json
 
-echo "✅ AbuseIPDB input created"
+echo " AbuseIPDB input created"
 
 # Step 4: Create Blob Storage Input for Censys
 echo ""
@@ -107,7 +107,7 @@ az stream-analytics input create \
   --name "FlattenedCensys" \
   --properties @/tmp/censys-input.json
 
-echo "✅ Censys input created"
+echo " Censys input created"
 
 # Step 5: Create Output for AbuseIPDB Analytics
 echo ""
@@ -141,7 +141,7 @@ az stream-analytics output create \
   --name "AbuseIPDBAnalyticsOutput" \
   --properties @/tmp/abuse-output.json
 
-echo "✅ AbuseIPDB output created"
+echo " AbuseIPDB output created"
 
 # Step 6: Create Output for Censys Analytics
 cat > /tmp/censys-output.json <<EOF
@@ -173,7 +173,7 @@ az stream-analytics output create \
   --name "CensysAnalyticsOutput" \
   --properties @/tmp/censys-output.json
 
-echo "✅ Censys output created"
+echo " Censys output created"
 
 # Step 7: Create Output for Combined Analytics
 cat > /tmp/combined-output.json <<EOF
@@ -205,7 +205,7 @@ az stream-analytics output create \
   --name "CombinedThreatAnalytics" \
   --properties @/tmp/combined-output.json
 
-echo "✅ Combined analytics output created"
+echo " Combined analytics output created"
 
 # Step 8: Create Output for Hourly Aggregates
 cat > /tmp/aggregates-output.json <<EOF
@@ -237,7 +237,7 @@ az stream-analytics output create \
   --name "HourlyAggregates" \
   --properties @/tmp/aggregates-output.json
 
-echo "✅ Hourly aggregates output created"
+echo " Hourly aggregates output created"
 
 # Step 9: Create analytics container if it doesn't exist
 echo ""
@@ -248,7 +248,7 @@ az storage container create \
   --account-key "$STORAGE_KEY" \
   --public-access off || echo "Container may already exist"
 
-echo "✅ Analytics container ready"
+echo " Analytics container ready"
 
 # Step 10: Set the query
 echo ""
@@ -271,7 +271,7 @@ az stream-analytics transformation create \
   --name "FlattenedDataTransformation" \
   --properties @/tmp/transformation.json
 
-echo "✅ Query configured"
+echo " Query configured"
 
 # Clean up temp files
 rm -f /tmp/abuse-input.json /tmp/censys-input.json /tmp/abuse-output.json \
@@ -280,7 +280,7 @@ rm -f /tmp/abuse-input.json /tmp/censys-input.json /tmp/abuse-output.json \
 
 echo ""
 echo "================================================"
-echo "✅ Stream Analytics Job Setup Complete!"
+echo " Stream Analytics Job Setup Complete!"
 echo "================================================"
 echo ""
 echo "Job Name: $JOB_NAME"

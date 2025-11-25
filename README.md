@@ -9,7 +9,7 @@ This is a comprehensive threat intelligence pipeline built on Azure, combining r
 
 ---
 
-## 🏗️ Architecture Overview
+##  Architecture Overview
 
 ```
 External APIs → Azure Functions → Event Hub → Stream Analytics → Blob Storage → ML Pipeline
@@ -27,7 +27,7 @@ External APIs → Azure Functions → Event Hub → Stream Analytics → Blob St
 
 ---
 
-## 🧠 Enrichment Functions – Azure Function App
+##  Enrichment Functions – Azure Function App
 
 Two timer-triggered enrichment functions run automatically at fixed intervals, fetch external intelligence data, and stream results to Azure Event Hub for further analysis.
 
@@ -38,7 +38,7 @@ Two timer-triggered enrichment functions run automatically at fixed intervals, f
 
 ---
 
-## 📊 Stream Analytics & Data Flattening
+##  Stream Analytics & Data Flattening
 
 ### Problem Solved
 Azure Parquet files with nested structures (arrays, objects) caused `ParquetType-NotSupported` errors when browsing in the Portal.
@@ -58,7 +58,7 @@ Azure Parquet files with nested structures (arrays, objects) caused `ParquetType
 
 ---
 
-## 🤖 Machine Learning Pipeline
+##  Machine Learning Pipeline
 
 ### Features
 - **Threat Classification** - Random Forest model trained on labeled threat intelligence
@@ -82,7 +82,7 @@ Azure Parquet files with nested structures (arrays, objects) caused `ParquetType
 
 ---
 
-## ⚙️ Environment Configuration
+##  Environment Configuration
 
 | Variable | Description |
 |-----------|-------------|
@@ -99,7 +99,7 @@ All values are configured via **Azure App Settings** in the Function App portal.
 
 ---
 
-## 💻 Local Development
+##  Local Development
 
 ### Prerequisites
 - Python 3.12+
@@ -151,7 +151,7 @@ python deploy/azure_ml_deploy.py
 
 ---
 
-## 📦 Project Structure
+##  Project Structure
 
 ```
 COMPSCI-532/
@@ -180,25 +180,25 @@ COMPSCI-532/
 
 ---
 
-## 🔧 Key Features
+##  Key Features
 
-### ✅ Automated Data Collection
+###  Automated Data Collection
 - Timer-triggered Azure Functions fetch data every 5-10 minutes
 - Event Hub handles real-time streaming ingestion
 - Scalable architecture for high-volume data processing
 
-### ✅ Intelligent Data Flattening
+###  Intelligent Data Flattening
 - **Stream Analytics Query** - Flattens nested structures in real-time
 - **Blob Triggers** - Automatically processes existing files
 - **JSON Serialization** - Complex types stored as strings for Parquet compatibility
 
-### ✅ Machine Learning Pipeline
+###  Machine Learning Pipeline
 - **Random Forest Classifier** - Threat detection and risk scoring
 - **Feature Engineering** - Extracts meaningful signals from raw data
 - **Azure ML Integration** - Model training, versioning, and deployment
 - **Real-time Inference** - Loads flattened data directly from blob storage
 
-### ✅ Production-Ready
+###  Production-Ready
 - **Error Handling** - Comprehensive logging and monitoring
 - **Authentication** - Azure CLI credentials via DefaultAzureCredential
 - **Scalability** - Handles 1350+ files with batch processing
@@ -206,7 +206,7 @@ COMPSCI-532/
 
 ---
 
-## 📈 Data Flow
+##  Data Flow
 
 1. **Collection**: External APIs (Censys, AbuseIPDB) → Azure Functions
 2. **Ingestion**: Azure Functions → Event Hub (real-time stream)
@@ -217,7 +217,7 @@ COMPSCI-532/
 
 ---
 
-## 🎯 Use Cases
+##  Use Cases
 
 - **Threat Intelligence Aggregation** - Combine multiple data sources for comprehensive threat analysis
 - **Risk Scoring** - Automated assessment of IP reputation and behavior
@@ -226,7 +226,7 @@ COMPSCI-532/
 
 ---
 
-## 📚 Documentation
+##  Documentation
 
 | Document | Description |
 |----------|-------------|
@@ -237,19 +237,19 @@ COMPSCI-532/
 
 ---
 
-## 🚀 Production Status
+##  Production Status
 
 | Component | Status | Details |
 |-----------|--------|---------|
-| Enrichment Functions | ✅ Running | Timer-triggered every 5-10 min |
-| Stream Analytics | ✅ Running | Flattening query deployed |
-| Blob Triggers | ✅ Deployed | Auto-flatten on upload |
-| ML Pipeline | ✅ Functional | Loads from flattened/ folders |
-| Storage | ✅ Ready | 1350+ flattened files available |
+| Enrichment Functions |  Running | Timer-triggered every 5-10 min |
+| Stream Analytics |  Running | Flattening query deployed |
+| Blob Triggers |  Deployed | Auto-flatten on upload |
+| ML Pipeline |  Functional | Loads from flattened/ folders |
+| Storage |  Ready | 1350+ flattened files available |
 
 ---
 
-## 🤝 Contributors
+##  Contributors
 
 **COMPSCI 532 Group Project**
 - University of Massachusetts Amherst
@@ -257,13 +257,13 @@ COMPSCI-532/
 
 ---
 
-## 📝 License
+##  License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🔗 Resources
+##  Resources
 
 - [Azure Functions Documentation](https://docs.microsoft.com/en-us/azure/azure-functions/)
 - [Azure Stream Analytics](https://docs.microsoft.com/en-us/azure/stream-analytics/)

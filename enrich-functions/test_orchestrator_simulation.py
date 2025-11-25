@@ -44,8 +44,8 @@ def simulate_orchestrator_join():
     censys_data = []  # Would contain host data if authentication worked
     
     print("🔄 **Simulating Orchestrator Join Logic**")
-    print(f"📊 AbuseIPDB records: {len(abuseipdb_data)}")
-    print(f"📊 Censys records: {len(censys_data)}")
+    print(f" AbuseIPDB records: {len(abuseipdb_data)}")
+    print(f" Censys records: {len(censys_data)}")
     
     # Perform the join operation (same logic as in function_app.py)
     joined_results = []
@@ -70,17 +70,17 @@ def simulate_orchestrator_join():
         }
         joined_results.append(joined_record)
     
-    print(f"✅ **Join completed: {len(joined_results)} enriched records**")
+    print(f" **Join completed: {len(joined_results)} enriched records**")
     
     # Calculate what would be sent to Event Hub
     joined_json = json.dumps(joined_results, indent=2)
     message_size = len(joined_json.encode('utf-8'))
     
-    print(f"📦 **Message size for 'collector' Event Hub: {message_size} bytes**")
+    print(f" **Message size for 'collector' Event Hub: {message_size} bytes**")
     print(f"⚡ **Estimated processing time: ~1000ms** (based on observed pattern)")
     
     # Show sample of what would be sent
-    print("\n📋 **Sample joined record:**")
+    print("\n **Sample joined record:**")
     print(json.dumps(joined_results[0], indent=2)[:500] + "...")
     
     return joined_results

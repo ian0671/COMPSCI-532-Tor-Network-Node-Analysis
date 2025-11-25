@@ -53,7 +53,7 @@ for i, blob in enumerate(blobs, 1):
             with open(out_path, 'rb') as f:
                 container_client.upload_blob(dest, f, overwrite=True)
             
-            print(f"  ✓ Uploaded to {dest}")
+            print(f"   Uploaded to {dest}")
     
     except Exception as e:
         print(f"  ✗ Error: {e}")

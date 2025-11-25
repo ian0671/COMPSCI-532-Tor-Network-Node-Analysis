@@ -6,7 +6,7 @@ set -e
 RESOURCE_GROUP="COMPSCI532"
 JOB_NAME="COMPSCI532-FlattenedAnalytics"
 
-echo "🚀 Starting Stream Analytics Job: $JOB_NAME"
+echo " Starting Stream Analytics Job: $JOB_NAME"
 echo "================================================"
 
 # Start the job
@@ -17,7 +17,7 @@ az stream-analytics job start \
   --output-start-time "2024-01-01T00:00:00Z"
 
 echo ""
-echo "✅ Job starting... This will process all 1350 flattened files!"
+echo " Job starting... This will process all 1350 flattened files!"
 echo ""
 echo "Monitor progress:"
 echo "  Portal: https://portal.azure.com/#blade/HubsExtension/BrowseResource/resourceType/Microsoft.StreamAnalytics%2Fstreamingjobs"

@@ -7,12 +7,12 @@ This guide shows how to configure Azure Stream Analytics to read from **flattene
 
 ### Before (Current - Has Errors):
 ```
-Event Hub → Stream Analytics → Parquet (nested/broken) ❌
+Event Hub → Stream Analytics → Parquet (nested/broken) 
 ```
 
 ### After (Recommended):
 ```
-Event Hub → Raw Parquet → Flatten Function → Flattened Parquet → Stream Analytics ✅
+Event Hub → Raw Parquet → Flatten Function → Flattened Parquet → Stream Analytics 
 ```
 
 ## Option 1: Use Flattened Blob Storage (Recommended)
@@ -128,17 +128,17 @@ az stream-analytics job start \
 
 ## Benefits of Using Flattened Data
 
-### ✅ No ParquetType Errors
+###  No ParquetType Errors
 - All complex types converted to strings
 - Compatible with Azure portal browsing
 - Works with all downstream tools
 
-### ✅ Better Performance
+###  Better Performance
 - Pre-flattened data is faster to query
 - No runtime JSON parsing needed
 - Optimized schema for analytics
 
-### ✅ ML Pipeline Ready
+###  ML Pipeline Ready
 - Same data source for Stream Analytics and ML
 - Consistent data format across pipeline
 - Easy to validate and debug
@@ -236,13 +236,13 @@ censys/flattened/*.parquet
 
 ## Next Steps
 
-1. ✅ Create new Stream Analytics job for flattened data
-2. ✅ Configure blob storage inputs
-3. ✅ Set up analytics outputs
-4. ✅ Deploy query from `stream-analytics-query-flattened.sql`
-5. ✅ Test with existing 1350 flattened files
-6. ✅ Monitor and optimize
+1.  Create new Stream Analytics job for flattened data
+2.  Configure blob storage inputs
+3.  Set up analytics outputs
+4.  Deploy query from `stream-analytics-query-flattened.sql`
+5.  Test with existing 1350 flattened files
+6.  Monitor and optimize
 
 ---
 
-**Result:** No more ParquetType errors, faster queries, ML-ready data! 🚀
+**Result:** No more ParquetType errors, faster queries, ML-ready data! 

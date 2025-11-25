@@ -84,7 +84,7 @@ def flatten_blob_trigger(myblob: func.InputStream):
             with open(out_path, 'rb') as f:
                 container_client.upload_blob(dest_blob, f, overwrite=True)
             
-            logging.info(f"✓ Flattened file uploaded to {dest_blob}")
+            logging.info(f" Flattened file uploaded to {dest_blob}")
     except Exception as e:
         logging.error(f"Error processing blob: {e}")
         raise
@@ -133,7 +133,7 @@ def flatten_blob_trigger_censys(myblob: func.InputStream):
             with open(out_path, 'rb') as f:
                 container_client.upload_blob(dest_blob, f, overwrite=True)
             
-            logging.info(f"✓ Censys flattened file uploaded to {dest_blob}")
+            logging.info(f" Censys flattened file uploaded to {dest_blob}")
     except Exception as e:
         logging.error(f"Error processing censys blob: {e}")
         raise

@@ -36,7 +36,7 @@ def _get_env_int(name: str, default: int) -> int:
     try:
         return int(raw)
     except ValueError:
-        logging.warning(f"⚠️ Invalid int for {name}='{raw}', using default {default}")
+        logging.warning(f" Invalid int for {name}='{raw}', using default {default}")
         return default
 
 
@@ -69,7 +69,7 @@ CENSYS_MAX_PAGES = _get_env_int("CENSYS_MAX_PAGES", 1)
 
 # Light config echo (redacted)
 logging.info(
-    "🔧 Config: ABUSE_EH_NAME=%s, CENSYS_EH_NAME=%s, ABUSE_IP_COUNT=%d, CENSYS_PER_PAGE=%d, CENSYS_MAX_PAGES=%d",
+    " Config: ABUSE_EH_NAME=%s, CENSYS_EH_NAME=%s, ABUSE_IP_COUNT=%d, CENSYS_PER_PAGE=%d, CENSYS_MAX_PAGES=%d",
     ABUSE_EH_NAME, CENSYS_EH_NAME, len(ABUSE_IP_LIST), CENSYS_PER_PAGE, CENSYS_MAX_PAGES
 )
 
@@ -469,7 +469,7 @@ def ValidateAndStore(timer: func.TimerRequest) -> None:
         logging.info('ValidateAndStore timer is past due')
     
     # TODO: Replace with actual Event Hub consumption logic when EventHub trigger works
-    logging.info("✅ ValidateAndStore function is running successfully")
+    logging.info(" ValidateAndStore function is running successfully")
     
     # Placeholder for validation logic - we'll convert back to EventHub trigger later
     try:

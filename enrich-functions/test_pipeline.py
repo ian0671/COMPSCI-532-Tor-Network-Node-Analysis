@@ -14,13 +14,13 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 def test_abuseipdb_api():
     """Test AbuseIPDB API connectivity and response format"""
-    print("🔍 Testing AbuseIPDB API...")
+    print(" Testing AbuseIPDB API...")
     
     api_key = os.getenv("ABUSE_API_KEY", "a1878711c868898812da5d397605759c3adfd681483a0a51ce8ab1dc3eef824242760e00d59798eb")
     ip_list = ["8.8.8.8", "1.1.1.1"]
     
     if not api_key:
-        print("❌ ABUSE_API_KEY not found")
+        print(" ABUSE_API_KEY not found")
         return False
     
     headers = {"Key": api_key, "Accept": "application/json"}
@@ -43,26 +43,26 @@ def test_abuseipdb_api():
                     "run_id": int(datetime.utcnow().timestamp()),
                     "data": data
                 })
-                print(f"  ✅ {ip}: Success (confidence: {data.get('data', {}).get('abuseConfidenceScore', 0)}%)")
+                print(f"   {ip}: Success (confidence: {data.get('data', {}).get('abuseConfidenceScore', 0)}%)")
             else:
-                print(f"  ❌ {ip}: HTTP {response.status_code} - {response.text}")
+                print(f"   {ip}: HTTP {response.status_code} - {response.text}")
                 return False
                 
         except Exception as e:
-            print(f"  ❌ {ip}: Error - {e}")
+            print(f"   {ip}: Error - {e}")
             return False
     
-    print(f"✅ AbuseIPDB API test passed! Retrieved data for {len(test_results)} IPs")
+    print(f" AbuseIPDB API test passed! Retrieved data for {len(test_results)} IPs")
     return test_results
 
 def test_censys_api():
     """Test Censys API connectivity and response format"""
-    print("🔍 Testing Censys API...")
+    print(" Testing Censys API...")
     
     token = os.getenv("CENSYS_API_TOKEN", "EZXzJJap")
     
     if not token:
-        print("❌ CENSYS_API_TOKEN not found")
+        print(" CENSYS_API_TOKEN not found")
         return False
     
     headers = {
@@ -88,7 +88,7 @@ def test_censys_api():
         if response.status_code == 200:
             data = response.json()
             hits = data.get("result", {}).get("hits", [])
-            print(f"  ✅ Censys API: Success (found {len(hits)} hosts)")
+            print(f"   Censys API: Success (found {len(hits)} hosts)")
             
             # Format data like the function would
             test_results = []
@@ -108,23 +108,23 @@ def test_censys_api():
             return test_results
             
         elif response.status_code == 401:
-            print(f"  ❌ Censys API: Authentication failed (401) - {response.text}")
-            print("  💡 This is expected if API token is invalid/expired")
+            print(f"   Censys API: Authentication failed (401) - {response.text}")
+            print("   This is expected if API token is invalid/expired")
             return []
         else:
-            print(f"  ❌ Censys API: HTTP {response.status_code} - {response.text}")
+            print(f"   Censys API: HTTP {response.status_code} - {response.text}")
             return False
             
     except Exception as e:
-        print(f"  ❌ Censys API: Error - {e}")
+        print(f"   Censys API: Error - {e}")
         return False
 
 def test_join_logic(abuse_data, censys_data):
     """Test the join logic that combines data from both sources"""
-    print("🔍 Testing join logic...")
+    print(" Testing join logic...")
     
     if not abuse_data and not censys_data:
-        print("  ⚠️ No test data available for join logic")
+        print("   No test data available for join logic")
         return []
     
     # Simulate join logic from SimpleOrchestrator
@@ -145,7 +145,7 @@ def test_join_logic(abuse_data, censys_data):
         }
         joined_records.append(record)
     
-    print(f"  ✅ Join logic: Created {len(joined_records)} joined records")
+    print(f"   Join logic: Created {len(joined_records)} joined records")
     print(f"    - AbuseIPDB IPs: {len(abuse_ips)}")
     print(f"    - Censys IPs: {len(censys_ips)}")
     print(f"    - Unique IPs total: {len(all_ips)}")
@@ -154,10 +154,10 @@ def test_join_logic(abuse_data, censys_data):
 
 def test_validation_logic(joined_data):
     """Test the validation logic from ValidateAndStore function"""
-    print("🔍 Testing validation logic...")
+    print(" Testing validation logic...")
     
     if not joined_data:
-        print("  ⚠️ No joined data to validate")
+        print("   No joined data to validate")
         return []
     
     validated_records = []
@@ -176,7 +176,7 @@ def test_validation_logic(joined_data):
         }
         validated_records.append(validated_record)
     
-    print(f"  ✅ Validation logic: Created {len(validated_records)} validated records")
+    print(f"   Validation logic: Created {len(validated_records)} validated records")
     
     # Show sample validated record
     if validated_records:
@@ -187,7 +187,7 @@ def test_validation_logic(joined_data):
 
 def main():
     """Run all pipeline tests"""
-    print("🚀 Starting Azure Functions Pipeline Tests")
+    print(" Starting Azure Functions Pipeline Tests")
     print("=" * 50)
     
     # Test 1: AbuseIPDB API
@@ -207,16 +207,16 @@ def main():
         validated_data = test_validation_logic(joined_data)
         print()
     else:
-        print("⚠️ Skipping join and validation tests due to API failures")
+        print(" Skipping join and validation tests due to API failures")
     
     print("=" * 50)
-    print("🎯 Test Summary:")
-    print(f"  • AbuseIPDB API: {'✅ Working' if abuse_data else '❌ Failed'}")
-    print(f"  • Censys API: {'✅ Working' if censys_data else '❌ Failed (expected)'}")
-    print(f"  • Join Logic: {'✅ Working' if 'joined_data' in locals() else '❌ Skipped'}")
-    print(f"  • Validation: {'✅ Working' if 'validated_data' in locals() else '❌ Skipped'}")
+    print(" Test Summary:")
+    print(f"  • AbuseIPDB API: {' Working' if abuse_data else ' Failed'}")
+    print(f"  • Censys API: {' Working' if censys_data else ' Failed (expected)'}")
+    print(f"  • Join Logic: {' Working' if 'joined_data' in locals() else ' Skipped'}")
+    print(f"  • Validation: {' Working' if 'validated_data' in locals() else ' Skipped'}")
     print()
-    print("💡 Next steps:")
+    print(" Next steps:")
     print("  1. Fix Censys API credentials if needed")
     print("  2. Configure ADLS settings in Azure Function App")
     print("  3. Test Event Hub data flow")

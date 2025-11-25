@@ -4,11 +4,11 @@
 This setup captures Event Hub data from your Azure Functions pipeline and stores it in ADLS Gen2 in Parquet format for long-term analytics.
 
 ## Current Status
-✅ **Stream Analytics Job Created**: `COMPSCI532-StreamAnalytics`  
-✅ **Inputs Configured**: 
+ **Stream Analytics Job Created**: `COMPSCI532-StreamAnalytics`  
+ **Inputs Configured**: 
    - `AbuseIPDBInput` (connected to abuseipdbdata Event Hub)
    - `CensysInput` (connected to censysdata Event Hub)
-⚠️ **Outputs Pending**: ADLS Gen2 Parquet outputs (complete via Azure Portal)  
+ **Outputs Pending**: ADLS Gen2 Parquet outputs (complete via Azure Portal)  
 
 ---
 
@@ -91,17 +91,17 @@ FULL OUTER JOIN CensysInput c ON a.ip = c.ip AND DATEDIFF(minute, a, c) BETWEEN 
 
 ## What This Achieves
 
-### 📊 **Automated Data Archival**
+###  **Automated Data Archival**
 - **Real-time capture** of all AbuseIPDB data from your functions
 - **Parquet format** for efficient analytics and compression
 - **Partitioned storage** by date/time for easy querying
 
-### 🔍 **Analytics Ready**
+###  **Analytics Ready**
 - **Date partitioning**: `/year=2025/month=11/day=09/hour=14/`
 - **Columnar storage**: Optimal for analytical queries
 - **Schema evolution**: Parquet handles data schema changes gracefully
 
-### 🚀 **Integration Benefits**
+###  **Integration Benefits**
 - **Complements your pipeline**: No changes to existing Azure Functions
 - **Cost effective**: Pay-per-use Stream Analytics + cheap ADLS storage
 - **Scalable**: Handles high-throughput Event Hub streams
