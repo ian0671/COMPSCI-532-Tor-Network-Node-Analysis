@@ -1,0 +1,10 @@
+{
+    "name": "Get_ExtraInfo_Descriptors",
+    "startFile": "transformation.asaql",
+    "configurations": [
+        {
+            "filePath": "JobConfig.json",
+            "subType": "JobConfig"
+        }
+    ]
+}

@@ -1,0 +1,195 @@
+WITH base AS (
+    SELECT
+        TRY_CAST([collector].[payload] AS record) AS payload,
+        TRY_CAST([collector].[source] AS nvarchar(max)) AS source,
+        TRY_CAST([collector].[type] AS nvarchar(max)) AS type,
+        TRY_CAST([collector].[timestamp] AS nvarchar(max)) AS timestamp,
+        TRY_CAST([collector].[EventProcessedUtcTime] AS datetime) AS EventProcessedUtcTime,
+        TRY_CAST([collector].[PartitionId] AS bigint) AS PartitionId,
+        TRY_CAST([collector].[EventEnqueuedUtcTime] AS datetime) AS EventEnqueuedUtcTime
+    FROM [collector]
+    TIMESTAMP BY EventEnqueuedUtcTime
+)
+
+-- =========================
+-- IPs
+-- =========================
+SELECT
+    b.source, b.type, b.timestamp, b.EventProcessedUtcTime, b.PartitionId, b.EventEnqueuedUtcTime,
+    b.payload.nickname, b.payload.fingerprint,
+    TRY_CAST(b.payload.published AS datetime) AS published,
+    b.payload.signature, b.payload.geoip_db_digest, b.payload.geoip6_db_digest,
+    b.payload.read_history_end, b.payload.read_history_interval,
+    b.payload.write_history_end, b.payload.write_history_interval,
+    b.payload.dir_stats_end, b.payload.dir_stats_interval,
+    b.payload.dir_read_history_end, b.payload.dir_read_history_interval,
+    b.payload.dir_write_history_end, b.payload.dir_write_history_interval,
+    b.payload.hs_stats_end, b.payload.padding_counts_end, b.payload.padding_counts_interval,
+    'ips' AS category,
+    TRY_CAST(ips.PropertyName AS nvarchar(max)) AS prop_key,
+    TRY_CAST(ips.PropertyValue AS nvarchar(max)) AS prop_value
+INTO [get-extrainfo-descriptors]
+FROM base AS b
+OUTER APPLY GetRecordProperties(b.payload.dir_v3_ips) AS ips
+WHERE b.source = 'Get_ExtraInfo_Descriptors'
+
+UNION ALL
+
+-- =========================
+-- Requests
+-- =========================
+SELECT
+    b.source, b.type, b.timestamp, b.EventProcessedUtcTime, b.PartitionId, b.EventEnqueuedUtcTime,
+    b.payload.nickname, b.payload.fingerprint,
+    TRY_CAST(b.payload.published AS datetime) AS published,
+    b.payload.signature, b.payload.geoip_db_digest, b.payload.geoip6_db_digest,
+    b.payload.read_history_end, b.payload.read_history_interval,
+    b.payload.write_history_end, b.payload.write_history_interval,
+    b.payload.dir_stats_end, b.payload.dir_stats_interval,
+    b.payload.dir_read_history_end, b.payload.dir_read_history_interval,
+    b.payload.dir_write_history_end, b.payload.dir_write_history_interval,
+    b.payload.hs_stats_end, b.payload.padding_counts_end, b.payload.padding_counts_interval,
+    'req' AS category,
+    TRY_CAST(req.PropertyName AS nvarchar(max)) AS prop_key,
+    TRY_CAST(req.PropertyValue AS nvarchar(max)) AS prop_value
+FROM base AS b
+OUTER APPLY GetRecordProperties(b.payload.dir_v3_requests) AS req
+WHERE b.source = 'Get_ExtraInfo_Descriptors'
+
+UNION ALL
+
+-- =========================
+-- Responses
+-- =========================
+SELECT
+    b.source, b.type, b.timestamp, b.EventProcessedUtcTime, b.PartitionId, b.EventEnqueuedUtcTime,
+    b.payload.nickname, b.payload.fingerprint,
+    TRY_CAST(b.payload.published AS datetime) AS published,
+    b.payload.signature, b.payload.geoip_db_digest, b.payload.geoip6_db_digest,
+    b.payload.read_history_end, b.payload.read_history_interval,
+    b.payload.write_history_end, b.payload.write_history_interval,
+    b.payload.dir_stats_end, b.payload.dir_stats_interval,
+    b.payload.dir_read_history_end, b.payload.dir_read_history_interval,
+    b.payload.dir_write_history_end, b.payload.dir_write_history_interval,
+    b.payload.hs_stats_end, b.payload.padding_counts_end, b.payload.padding_counts_interval,
+    'resp' AS category,
+    TRY_CAST(resp.PropertyName AS nvarchar(max)) AS prop_key,
+    TRY_CAST(resp.PropertyValue AS nvarchar(max)) AS prop_value
+FROM base AS b
+OUTER APPLY GetRecordProperties(b.payload.dir_v3_responses) AS resp
+WHERE b.source = 'Get_ExtraInfo_Descriptors'
+
+UNION ALL
+
+-- =========================
+-- Direct DL
+-- =========================
+SELECT
+    b.source, b.type, b.timestamp, b.EventProcessedUtcTime, b.PartitionId, b.EventEnqueuedUtcTime,
+    b.payload.nickname, b.payload.fingerprint,
+    TRY_CAST(b.payload.published AS datetime) AS published,
+    b.payload.signature, b.payload.geoip_db_digest, b.payload.geoip6_db_digest,
+    b.payload.read_history_end, b.payload.read_history_interval,
+    b.payload.write_history_end, b.payload.write_history_interval,
+    b.payload.dir_stats_end, b.payload.dir_stats_interval,
+    b.payload.dir_read_history_end, b.payload.dir_read_history_interval,
+    b.payload.dir_write_history_end, b.payload.dir_write_history_interval,
+    b.payload.hs_stats_end, b.payload.padding_counts_end, b.payload.padding_counts_interval,
+    'dld' AS category,
+    TRY_CAST(dld.PropertyName AS nvarchar(max)) AS prop_key,
+    TRY_CAST(dld.PropertyValue AS nvarchar(max)) AS prop_value
+FROM base AS b
+OUTER APPLY GetRecordProperties(b.payload.dir_v3_direct_dl) AS dld
+WHERE b.source = 'Get_ExtraInfo_Descriptors'
+
+UNION ALL
+
+-- =========================
+-- Tunneled DL
+-- =========================
+SELECT
+    b.source, b.type, b.timestamp, b.EventProcessedUtcTime, b.PartitionId, b.EventEnqueuedUtcTime,
+    b.payload.nickname, b.payload.fingerprint,
+    TRY_CAST(b.payload.published AS datetime) AS published,
+    b.payload.signature, b.payload.geoip_db_digest, b.payload.geoip6_db_digest,
+    b.payload.read_history_end, b.payload.read_history_interval,
+    b.payload.write_history_end, b.payload.write_history_interval,
+    b.payload.dir_stats_end, b.payload.dir_stats_interval,
+    b.payload.dir_read_history_end, b.payload.dir_read_history_interval,
+    b.payload.dir_write_history_end, b.payload.dir_write_history_interval,
+    b.payload.hs_stats_end, b.payload.padding_counts_end, b.payload.padding_counts_interval,
+    'tld' AS category,
+    TRY_CAST(tld.PropertyName AS nvarchar(max)) AS prop_key,
+    TRY_CAST(tld.PropertyValue AS nvarchar(max)) AS prop_value
+FROM base AS b
+OUTER APPLY GetRecordProperties(b.payload.dir_v3_tunneled_dl) AS tld
+WHERE b.source = 'Get_ExtraInfo_Descriptors'
+
+UNION ALL
+
+-- =========================
+-- HS Rend
+-- =========================
+SELECT
+    b.source, b.type, b.timestamp, b.EventProcessedUtcTime, b.PartitionId, b.EventEnqueuedUtcTime,
+    b.payload.nickname, b.payload.fingerprint,
+    TRY_CAST(b.payload.published AS datetime) AS published,
+    b.payload.signature, b.payload.geoip_db_digest, b.payload.geoip6_db_digest,
+    b.payload.read_history_end, b.payload.read_history_interval,
+    b.payload.write_history_end, b.payload.write_history_interval,
+    b.payload.dir_stats_end, b.payload.dir_stats_interval,
+    b.payload.dir_read_history_end, b.payload.dir_read_history_interval,
+    b.payload.dir_write_history_end, b.payload.dir_write_history_interval,
+    b.payload.hs_stats_end, b.payload.padding_counts_end, b.payload.padding_counts_interval,
+    'rend' AS category,
+    TRY_CAST(rend.PropertyName AS nvarchar(max)) AS prop_key,
+    TRY_CAST(rend.PropertyValue AS nvarchar(max)) AS prop_value
+FROM base AS b
+OUTER APPLY GetRecordProperties(b.payload.hs_rend_cells_attr) AS rend
+WHERE b.source = 'Get_ExtraInfo_Descriptors'
+
+UNION ALL
+
+-- =========================
+-- Onions
+-- =========================
+SELECT
+    b.source, b.type, b.timestamp, b.EventProcessedUtcTime, b.PartitionId, b.EventEnqueuedUtcTime,
+    b.payload.nickname, b.payload.fingerprint,
+    TRY_CAST(b.payload.published AS datetime) AS published,
+    b.payload.signature, b.payload.geoip_db_digest, b.payload.geoip6_db_digest,
+    b.payload.read_history_end, b.payload.read_history_interval,
+    b.payload.write_history_end, b.payload.write_history_interval,
+    b.payload.dir_stats_end, b.payload.dir_stats_interval,
+    b.payload.dir_read_history_end, b.payload.dir_read_history_interval,
+    b.payload.dir_write_history_end, b.payload.dir_write_history_interval,
+    b.payload.hs_stats_end, b.payload.padding_counts_end, b.payload.padding_counts_interval,
+    'onions' AS category,
+    TRY_CAST(onions.PropertyName AS nvarchar(max)) AS prop_key,
+    TRY_CAST(onions.PropertyValue AS nvarchar(max)) AS prop_value
+FROM base AS b
+OUTER APPLY GetRecordProperties(b.payload.hs_dir_onions_seen_attr) AS onions
+WHERE b.source = 'Get_ExtraInfo_Descriptors'
+
+UNION ALL
+
+-- =========================
+-- Padding
+-- =========================
+SELECT
+    b.source, b.type, b.timestamp, b.EventProcessedUtcTime, b.PartitionId, b.EventEnqueuedUtcTime,
+    b.payload.nickname, b.payload.fingerprint,
+    TRY_CAST(b.payload.published AS datetime) AS published,
+    b.payload.signature, b.payload.geoip_db_digest, b.payload.geoip6_db_digest,
+    b.payload.read_history_end, b.payload.read_history_interval,
+    b.payload.write_history_end, b.payload.write_history_interval,
+    b.payload.dir_stats_end, b.payload.dir_stats_interval,
+    b.payload.dir_read_history_end, b.payload.dir_read_history_interval,
+    b.payload.dir_write_history_end, b.payload.dir_write_history_interval,
+    b.payload.hs_stats_end, b.payload.padding_counts_end, b.payload.padding_counts_interval,
+    'pad' AS category,
+    TRY_CAST(pad.PropertyName AS nvarchar(max)) AS prop_key,
+    TRY_CAST(pad.PropertyValue AS nvarchar(max)) AS prop_value
+FROM base AS b
+OUTER APPLY GetRecordProperties(b.payload.padding_counts) AS pad
+WHERE b.source = 'Get_ExtraInfo_Descriptors'

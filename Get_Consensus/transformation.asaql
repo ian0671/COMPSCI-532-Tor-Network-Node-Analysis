@@ -1,0 +1,82 @@
+WITH base AS (
+    SELECT
+        TRY_CAST([collector].[payload] AS record) AS payload,
+        TRY_CAST([collector].[source] AS nvarchar(max)) AS source,
+        TRY_CAST([collector].[type] AS nvarchar(max)) AS type,
+        TRY_CAST([collector].[timestamp] AS nvarchar(max)) AS timestamp,
+        TRY_CAST([collector].[EventProcessedUtcTime] AS datetime) AS EventProcessedUtcTime,
+        TRY_CAST([collector].[PartitionId] AS bigint) AS PartitionId,
+        TRY_CAST([collector].[EventEnqueuedUtcTime] AS datetime) AS EventEnqueuedUtcTime
+    FROM [collector]
+    TIMESTAMP BY EventEnqueuedUtcTime
+)
+
+-- =========================
+-- OR Addresses (array of arrays)
+-- =========================
+SELECT
+    b.source, b.type, b.timestamp, b.EventProcessedUtcTime, b.PartitionId, b.EventEnqueuedUtcTime,
+    b.payload.onion_key, b.payload.ntor_onion_key, b.payload.family,
+    b.payload.exit_policy, b.payload.exit_policy_v6,
+    b.payload.identifiers, b.payload.identifier, b.payload.identifier_type,
+    'or_addr' AS category,
+    TRY_CAST(addr_elements.ArrayIndex AS nvarchar(max)) + ':' + TRY_CAST(addr_parts.ArrayIndex AS nvarchar(max)) AS prop_key,
+    TRY_CAST(addr_parts.ArrayValue AS nvarchar(max)) AS prop_value,
+    TRY_CAST(addr_elements.ArrayIndex AS nvarchar(max)) AS addr_tuple_index,
+    TRY_CAST(addr_parts.ArrayIndex AS nvarchar(max)) AS addr_part_index,
+    TRY_CAST(addr_elements.ArrayValue AS nvarchar(max)) AS addr_elements_raw,
+    TRY_CAST(addr_parts.ArrayValue AS nvarchar(max)) AS addr_parts_raw,
+    CAST(NULL AS nvarchar(max)) AS protocol_name,
+    CAST(NULL AS nvarchar(max)) AS protocol_version
+INTO [get-consensus]
+FROM base AS b
+OUTER APPLY GetArrayElements(b.payload.or_addresses) AS addr_elements
+OUTER APPLY GetArrayElements(addr_elements.ArrayValue) AS addr_parts
+WHERE b.source = 'Get_Consensus'
+
+UNION ALL
+
+-- =========================
+-- Protocols (record of arrays)
+-- =========================
+SELECT
+    b.source, b.type, b.timestamp, b.EventProcessedUtcTime, b.PartitionId, b.EventEnqueuedUtcTime,
+    b.payload.onion_key, b.payload.ntor_onion_key, b.payload.family,
+    b.payload.exit_policy, b.payload.exit_policy_v6,
+    b.payload.identifiers, b.payload.identifier, b.payload.identifier_type,
+    'proto' AS category,
+    TRY_CAST(proto.PropertyName AS nvarchar(max)) AS prop_key,
+    TRY_CAST(proto_value.ArrayValue AS nvarchar(max)) AS prop_value,
+    CAST(NULL AS nvarchar(max)) AS addr_tuple_index,
+    CAST(NULL AS nvarchar(max)) AS addr_part_index,
+    CAST(NULL AS nvarchar(max)) AS addr_elements_raw,
+    CAST(NULL AS nvarchar(max)) AS addr_parts_raw,
+    TRY_CAST(proto.PropertyName AS nvarchar(max)) AS protocol_name,
+    TRY_CAST(proto_value.ArrayValue AS nvarchar(max)) AS protocol_version
+FROM base AS b
+OUTER APPLY GetRecordProperties(b.payload.protocols) AS proto
+OUTER APPLY GetArrayElements(proto.PropertyValue) AS proto_value
+WHERE b.source = 'Get_Consensus'
+
+UNION ALL
+
+-- =========================
+-- Scalars (catch-all)
+-- =========================
+SELECT
+    b.source, b.type, b.timestamp, b.EventProcessedUtcTime, b.PartitionId, b.EventEnqueuedUtcTime,
+    b.payload.onion_key, b.payload.ntor_onion_key, b.payload.family,
+    b.payload.exit_policy, b.payload.exit_policy_v6,
+    b.payload.identifiers, b.payload.identifier, b.payload.identifier_type,
+    'scalar' AS category,
+    TRY_CAST(scalar.PropertyName AS nvarchar(max)) AS prop_key,
+    TRY_CAST(scalar.PropertyValue AS nvarchar(max)) AS prop_value,
+    CAST(NULL AS nvarchar(max)) AS addr_tuple_index,
+    CAST(NULL AS nvarchar(max)) AS addr_part_index,
+    CAST(NULL AS nvarchar(max)) AS addr_elements_raw,
+    CAST(NULL AS nvarchar(max)) AS addr_parts_raw,
+    CAST(NULL AS nvarchar(max)) AS protocol_name,
+    CAST(NULL AS nvarchar(max)) AS protocol_version
+FROM base AS b
+OUTER APPLY GetRecordProperties(b.payload) AS scalar
+WHERE b.source = 'Get_Consensus'

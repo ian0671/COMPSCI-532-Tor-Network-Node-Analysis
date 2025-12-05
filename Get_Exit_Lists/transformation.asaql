@@ -1,0 +1,83 @@
+WITH
+
+[490720bf-0485-803c-206d-c7edf9c4c7b6] AS (
+SELECT
+    TRY_CAST([490720bf-0485-803c-206d-c7edf9c4c7b6-input].[payload] AS record) AS [payload],
+    TRY_CAST([490720bf-0485-803c-206d-c7edf9c4c7b6-input].[source] AS nvarchar(max)) AS [source],
+    TRY_CAST([490720bf-0485-803c-206d-c7edf9c4c7b6-input].[type] AS nvarchar(max)) AS [type],
+    TRY_CAST([490720bf-0485-803c-206d-c7edf9c4c7b6-input].[timestamp] AS nvarchar(max)) AS [timestamp],
+    TRY_CAST([490720bf-0485-803c-206d-c7edf9c4c7b6-input].[EventProcessedUtcTime] AS datetime) AS [EventProcessedUtcTime],
+    TRY_CAST([490720bf-0485-803c-206d-c7edf9c4c7b6-input].[PartitionId] AS bigint) AS [PartitionId],
+    TRY_CAST([490720bf-0485-803c-206d-c7edf9c4c7b6-input].[EventEnqueuedUtcTime] AS datetime) AS [EventEnqueuedUtcTime]
+FROM [490720bf-0485-803c-206d-c7edf9c4c7b6-input]
+TIMESTAMP BY EventEnqueuedUtcTime
+),
+
+[9d5e9167-28b9-77ed-b1ab-bbe5907cbdd8] AS (
+SELECT
+    [490720bf-0485-803c-206d-c7edf9c4c7b6].[payload],
+    [490720bf-0485-803c-206d-c7edf9c4c7b6].[source],
+    [490720bf-0485-803c-206d-c7edf9c4c7b6].[type],
+    [490720bf-0485-803c-206d-c7edf9c4c7b6].[timestamp],
+    [490720bf-0485-803c-206d-c7edf9c4c7b6].[EventProcessedUtcTime],
+    [490720bf-0485-803c-206d-c7edf9c4c7b6].[PartitionId],
+    [490720bf-0485-803c-206d-c7edf9c4c7b6].[EventEnqueuedUtcTime]
+FROM [490720bf-0485-803c-206d-c7edf9c4c7b6]
+WHERE ([490720bf-0485-803c-206d-c7edf9c4c7b6].[source] = 'Get_Exit_Lists')
+),
+
+[0306fcbc-b334-b29e-8792-0b21aa77bfd1] AS (
+SELECT
+    [9d5e9167-28b9-77ed-b1ab-bbe5907cbdd8].[source] AS [source],
+    [9d5e9167-28b9-77ed-b1ab-bbe5907cbdd8].[type] AS [type],
+    [9d5e9167-28b9-77ed-b1ab-bbe5907cbdd8].[timestamp] AS [timestamp],
+    [9d5e9167-28b9-77ed-b1ab-bbe5907cbdd8].[EventProcessedUtcTime] AS [EventProcessedUtcTime],
+    [9d5e9167-28b9-77ed-b1ab-bbe5907cbdd8].[PartitionId] AS [PartitionId],
+    [9d5e9167-28b9-77ed-b1ab-bbe5907cbdd8].[EventEnqueuedUtcTime] AS [EventEnqueuedUtcTime],
+    CAST([9d5e9167-28b9-77ed-b1ab-bbe5907cbdd8].[payload].[fingerprint] AS nvarchar(max)) AS [fingerprint],
+    CAST([9d5e9167-28b9-77ed-b1ab-bbe5907cbdd8].[payload].[published] AS nvarchar(max)) AS [published],
+    CAST([9d5e9167-28b9-77ed-b1ab-bbe5907cbdd8].[payload].[last_status] AS nvarchar(max)) AS [last_status],
+    CAST([9d5e9167-28b9-77ed-b1ab-bbe5907cbdd8].[payload].[exit_addresses] AS array) AS [exit_addresses]
+FROM [9d5e9167-28b9-77ed-b1ab-bbe5907cbdd8]
+),
+
+[flattened_exit_addresses] AS (
+    SELECT
+        source,
+        type,
+        timestamp,
+        EventProcessedUtcTime,
+        PartitionId,
+        EventEnqueuedUtcTime,
+        fingerprint,
+        published,
+        last_status,
+        MAX(TRY_CAST(exit_ip AS nvarchar(max))) AS exit_ip,
+        MAX(TRY_CAST(exit_seen AS nvarchar(max))) AS exit_seen
+    FROM (
+        SELECT
+            base.source,
+            base.type,
+            base.timestamp,
+            base.EventProcessedUtcTime,
+            base.PartitionId,
+            base.EventEnqueuedUtcTime,
+            base.fingerprint,
+            base.published,
+            base.last_status,
+            CASE WHEN inner_elem.ArrayIndex = 0 THEN inner_elem.ArrayValue ELSE NULL END AS exit_ip,
+            CASE WHEN inner_elem.ArrayIndex = 1 THEN inner_elem.ArrayValue ELSE NULL END AS exit_seen
+        FROM [0306fcbc-b334-b29e-8792-0b21aa77bfd1] AS base
+        CROSS APPLY GetArrayElements(base.exit_addresses) AS pair
+        CROSS APPLY GetArrayElements(pair.ArrayValue) AS inner_elem
+    ) AS pre_aggregated
+    GROUP BY
+        source, type, timestamp, EventProcessedUtcTime,
+        PartitionId, EventEnqueuedUtcTime, fingerprint,
+        published, last_status,
+        TumblingWindow(second, 1)
+)
+
+SELECT *
+INTO [750f669b-10c7-b4a3-441c-cd656c97e435]
+FROM [flattened_exit_addresses]

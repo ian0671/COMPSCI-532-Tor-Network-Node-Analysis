@@ -1,0 +1,10 @@
+{
+    "name": "Get_Consensus",
+    "startFile": "transformation.asaql",
+    "configurations": [
+        {
+            "filePath": "JobConfig.json",
+            "subType": "JobConfig"
+        }
+    ]
+}
