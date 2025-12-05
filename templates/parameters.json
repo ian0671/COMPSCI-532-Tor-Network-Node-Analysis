@@ -1,0 +1,99 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workbooks_136074e4_e7d5_44b6_99a2_7b88e6ff1067_serializedData": {
+            "value": null
+        },
+        "datastores_azureml_globaldatasets_secretsType": {
+            "value": null
+        },
+        "datastores_collector_secretsType": {
+            "value": null
+        },
+        "datastores_workspaceartifactstore_secretsType": {
+            "value": null
+        },
+        "datastores_workspaceblobstore_secretsType": {
+            "value": null
+        },
+        "datastores_workspacefilestore_secretsType": {
+            "value": null
+        },
+        "datastores_workspaceworkingdirectory_secretsType": {
+            "value": null
+        },
+        "sites_COMPSCI532_Function_App_name": {
+            "value": null
+        },
+        "serverfarms_ASP_COMPSCI532_8b23_name": {
+            "value": null
+        },
+        "namespaces_COMPSCI532EventHub_name": {
+            "value": null
+        },
+        "vaults_vault_mgioj0jw_name": {
+            "value": null
+        },
+        "vaults_vault_mgiokbvw_name": {
+            "value": null
+        },
+        "vaults_vault_mgn29f0e_name": {
+            "value": null
+        },
+        "storageAccounts_compsci53288e1_name": {
+            "value": null
+        },
+        "vaults_compsci532mlwo8101476906_name": {
+            "value": null
+        },
+        "systemTopics_curated_exit_lists_name": {
+            "value": null
+        },
+        "streamingjobs_Get_Consensus_name": {
+            "value": null
+        },
+        "components_compsci532mlwo1387830548_name": {
+            "value": null
+        },
+        "streamingjobs_Get_Exit_Lists_name": {
+            "value": null
+        },
+        "storageAccounts_compsci532mlwo6133466000_name": {
+            "value": null
+        },
+        "registries_COMPSCI532Containers_name": {
+            "value": null
+        },
+        "autoscalesettings_collector_Autoscale_649_name": {
+            "value": null
+        },
+        "streamingjobs_Get_Microdescriptors_name": {
+            "value": null
+        },
+        "streamingjobs_get_server_descriptors_name": {
+            "value": null
+        },
+        "workbooks_136074e4_e7d5_44b6_99a2_7b88e6ff1067_name": {
+            "value": null
+        },
+        "workspaces_compsci532mlwo2645317065_name": {
+            "value": null
+        },
+        "streamingjobs_Get_ExtraInfo_Descriptors_name": {
+            "value": null
+        },
+        "streamingjobs_COMPSCI532_StreamAnalytics_name": {
+            "value": null
+        },
+        "actionGroups_Application_Insights_Smart_Detection_name": {
+            "value": null
+        },
+        "workspaces_COMPSCI532_ML_Workspace_name": {
+            "value": null
+        },
+        "streamingjobs_collector_externalid": {
+            "value": null
+        }
+    }
+}

@@ -6,6 +6,7 @@ from Get_Microdescriptors import CollecTor_Get_Microdescriptors as Get_Microdesc
 # from Get_Key_Certificates import CollecTor_Get_Key_Certificates as Get_Key_Certificates
 from Get_ExtraInfo_Descriptors import CollecTor_Get_ExtraInfo_Descriptors as Get_ExtraInfo_Descriptors
 from Get_Exit_Lists import CollecTor_Get_Exit_Lists as Get_Exit_Lists
+from Get_Exit_Lists_Curated import CollecTor_Get_Exit_Lists_Curated
 
 app = func.FunctionApp() 
 app.register_functions(Get_Consensus)
@@ -14,4 +15,4 @@ app.register_functions(Get_Microdescriptors)
 # app.register_functions(Get_Key_Certificates)
 app.register_functions(Get_ExtraInfo_Descriptors)
 app.register_functions(Get_Exit_Lists)
-
+app.register_functions(CollecTor_Get_Exit_Lists_Curated)

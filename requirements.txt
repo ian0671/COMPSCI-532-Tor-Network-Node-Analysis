@@ -4,4 +4,7 @@
 
 azure-functions
 azure-eventhub
+azure-storage-file-datalake
+pandas
+pyarrow
 stem
