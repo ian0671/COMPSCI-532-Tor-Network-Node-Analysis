@@ -1,0 +1,10 @@
+{
+    "name": "Get_Exit_Lists",
+    "startFile": "transformation.asaql",
+    "configurations": [
+        {
+            "filePath": "JobConfig.json",
+            "subType": "JobConfig"
+        }
+    ]
+}
