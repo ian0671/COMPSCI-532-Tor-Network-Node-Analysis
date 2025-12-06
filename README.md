@@ -70,7 +70,7 @@ This workflow demonstrates the full lifecycle: raw Tor data ingested into ADLS G
 
 [Watch the Zoom recording](https://zoom.us/rec/share/your_recording_link)
 
-[Download the Project Slides](slides/ProjectPresentation.pptx)
+[Download the Project Slides](https://view.officeapps.live.com/op/view.aspx?src=https%3A%2F%2Fraw.githubusercontent.com%2Fian0671%2FCOMPSCI-532-Tor-Network-Node-Analysis%2Frefs%2Fheads%2Fmain%2Fpresentation%2FCOMPSCI532_Identifying%2520Malicious%2520Tor%2520Relays%252C%2520Bridges%2520%2526%2520Exit%2520Nodes.pptx&wdOrigin=BROWSELINK)
 
 ### Sources
 - [Azure Functions Overview](https://learn.microsoft.com/en-us/azure/azure-functions/functions-overview)
