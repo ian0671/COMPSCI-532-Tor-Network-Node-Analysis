@@ -65,7 +65,7 @@ This workflow demonstrates the full lifecycle: raw Tor data ingested into ADLS G
 ---
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fian0671%2FCOMPSCI-532-Tor-Network-Node-Analysis%2Fmain%2Ftemplates%2Ftemplate.json)
- or [Open Azure Portal](https://portal.azure.com)
+
 
 
 [Watch the Zoom recording](https://zoom.us/rec/share/your_recording_link)
